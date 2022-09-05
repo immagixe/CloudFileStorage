@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<header th:fragment="authorization_bar">
+    <main>
+        <div class="container">
+            <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
+                <a th:href="@{/}" class="d-flex align-items-center col-md-3 mb-2 mb-md-0 text-dark text-decoration-none">
+                    <img class="bi me-2" width="46" height="32" aria-label="Bootstrap"
+                         th:src="@{resources/img/cloudy_weather_icon.png}" alt="">
+                </a>
+                <div class="col-md-3 text-end">
+                    <div class="nav m-auto" th:if="${login == null}">
+                        <form method="GET" th:action="@{/login}">
+                            <button type="submit" class="btn btn-outline-primary me-2">Login</button>
+                        </form>
+                        <form method="GET" th:action="@{/new}">
+                            <button type="submit" class="btn btn-primary">Create Account</button>
+                        </form>
+                    </div>
+                    <div class="nav m-auto" th:unless="${login == null}">
+                        <form method="GET" th:action="@{/}">
+                            <button th:text="${login}" class="btn btn-warning me-2">Login</button>
+                        </form>
+                        <form method="GET" th:action="@{/logout}">
+                            <button type="submit" class="btn btn-primary">Log out</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</header>
+</body>
+</html>

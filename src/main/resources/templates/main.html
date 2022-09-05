@@ -1,0 +1,61 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>File Storage</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+</head>
+<body>
+<h1>Hello, world!</h1>
+
+<nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item" th:each="breadCrumb : ${breadCrumbs}">
+                <a th:href="${breadCrumb.getUrl()}" th:unless="${breadCrumb.isCurrent()}" th:text="${breadCrumb.getName()}">Home</a>
+                <span class="breadcrumb-item active" th:if="${breadCrumb.isCurrent()}" th:text="${breadCrumb.getName()}">Home</span>
+        </ol>
+</nav>
+
+<div class="container">
+    <!--    <div th:if="${locationWeather.size() > 0}">-->
+    <div class="row justify-content-center">
+        <div class="col-auto">
+            <table class="table table-borderless table-responsive text-center">
+                <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="file : ${listFiles}">
+                    <td class="align-middle" th:text="${file.getName()}">Name</td>
+
+                    <!--                        <td class="align-middle">-->
+                    <!--                            <form th:method="DELETE" th:action="@{/delete}">-->
+                    <!--                                <input type="hidden" th:value="${loc.getKey()}" name="locationToDelete"/>-->
+                    <!--                                <button type="submit" class="btn btn-outline-danger">Delete location</button>-->
+                    <!--                            </form>-->
+                    <!--                        </td>-->
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!--        <div class="row justify-content-center">-->
+    <!--            <div class="col-auto">-->
+    <!--                <form class="d-flex m-auto" th:method="DELETE" th:action="@{/deleteall}" th:object="${location}">-->
+    <!--                    <button class="btn btn-danger" type="submit">Delete all locations</button>-->
+    <!--                </form>-->
+    <!--            </div>-->
+    <!--        </div>-->
+
+    <!--    </div>-->
+</div>
+
+</body>
+</html>
+
+
+

@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  springboot:
+    build: ./
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - '8080:8080'
+  mysql:
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password_user
+      MYSQL_DATABASE: cloudfilestorage_db
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:

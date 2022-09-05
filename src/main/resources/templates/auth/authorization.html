@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.101.0">
+    <title>Authorization</title>
+
+    <breadCrumb rel="canonical" href="https://getbootstrap.com/docs/5.2/examples/sign-in/">
+    <breadCrumb th:href="@{resources/css/bootstrap.min.css}" rel="stylesheet"/>
+    <breadCrumb th:href="@{resources/css/signin.css}" rel="stylesheet"/>
+</head>
+<body class="text-center">
+<main class="form-signin w-100 m-auto">
+    <form method="POST" th:action="@{/login}" th:object="${user}">
+        <img class="mb-4" th:src="@{resources/img/cloudy_weather.png}" alt="">
+        <h1 class="h3 mb-3 fw-normal">Please sign in!</h1>
+
+        <div class="form-floating">
+            <input type="text" class="form-control" id="floatingInput" placeholder="Login" th:field="*{login}">
+            <label for="floatingInput">Login</label>
+            <div style="color:red" th:if="${#fields.hasErrors('login')}" th:errors="*{login}">Login error</div>
+        </div>
+        <div class="form-floating">
+            <input type="password" class="form-control" id="floatingPassword" placeholder="Password"
+                   th:field="*{password}">
+            <label for="floatingPassword">Password</label>
+            <div style="color:red" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">Password error</div>
+        </div>
+
+        <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
+        <a th:href="@{/new}">or create account</a>
+        <p class="mt-5 mb-3 text-muted">&copy; My way to Java Developer 2022</p>
+    </form>
+</main>
+</body>
+</html>
