@@ -1,4 +1,4 @@
-package ru.immagixe.CloudFileStorage.controllers;
+package ru.immagixe.CloudFileStorage.security.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import ru.immagixe.CloudFileStorage.models.Person;
-import ru.immagixe.CloudFileStorage.services.RegistrationService;
-import ru.immagixe.CloudFileStorage.util.PersonValidator;
+import ru.immagixe.CloudFileStorage.security.models.Person;
+import ru.immagixe.CloudFileStorage.security.services.RegistrationService;
+import ru.immagixe.CloudFileStorage.security.util.PersonValidator;
 
 import javax.validation.Valid;
 
@@ -36,7 +36,7 @@ public class AuthController {
         return "auth/registration";
     }
 
-    @PostMapping("registration")
+    @PostMapping("/registration")
     public String performRegistration(@ModelAttribute("person") @Valid Person person,
                                       BindingResult bindingResult) {
         personValidator.validate(person, bindingResult);

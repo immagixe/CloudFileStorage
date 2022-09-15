@@ -1,12 +1,11 @@
-package ru.immagixe.CloudFileStorage.controllers;
+package ru.immagixe.CloudFileStorage;
 
-import org.springframework.boot.autoconfigure.neo4j.Neo4jProperties;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import ru.immagixe.CloudFileStorage.security.PersonDetails;
+import ru.immagixe.CloudFileStorage.security.securityDetails.PersonDetails;
 
 @Controller
 public class HelloController {

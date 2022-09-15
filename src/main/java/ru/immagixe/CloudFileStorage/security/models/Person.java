@@ -1,4 +1,4 @@
-package ru.immagixe.CloudFileStorage.models;
+package ru.immagixe.CloudFileStorage.security.models;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;

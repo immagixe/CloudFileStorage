@@ -1,9 +1,9 @@
-package ru.immagixe.CloudFileStorage.security;
+package ru.immagixe.CloudFileStorage.security.securityDetails;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import ru.immagixe.CloudFileStorage.models.Person;
+import ru.immagixe.CloudFileStorage.security.models.Person;
 
 import java.util.Collection;
 import java.util.Collections;

@@ -1,12 +1,12 @@
-package ru.immagixe.CloudFileStorage.services;
+package ru.immagixe.CloudFileStorage.security.services;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.immagixe.CloudFileStorage.models.Person;
-import ru.immagixe.CloudFileStorage.repositories.PeopleRepository;
+import ru.immagixe.CloudFileStorage.security.models.Person;
+import ru.immagixe.CloudFileStorage.security.repositories.PeopleRepository;
 
 @Service
 public class RegistrationService {

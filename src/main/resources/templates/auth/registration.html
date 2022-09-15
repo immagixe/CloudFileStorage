@@ -8,17 +8,18 @@
     <meta name="generator" content="Hugo 0.101.0">
     <title>Registration</title>
 
-    <breadCrumb rel="canonical" href="https://getbootstrap.com/docs/5.2/examples/sign-in/">
-    <breadCrumb th:href="@{resources/css/bootstrap.min.css}" rel="stylesheet"/>
-    <breadCrumb th:href="@{resources/css/signin.css}" rel="stylesheet"/>
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.2/examples/sign-in/">
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet"/>
+    <link th:href="@{/css/signin.css}" rel="stylesheet"/>
 </head>
 <body class="text-center">
 <main class="form-signin w-100 m-auto">
     <form method="POST" th:action="@{/auth/registration}" th:object="${person}">
+        <img class="mb-4" th:src="@{/img/cloud.png}" alt="">
         <h1 class="h3 mb-3 fw-normal">Create Account</h1>
 
         <div class="form-floating">
-            <input type="text" class="form-control" id="username" placeholder="Login" th:field="*{username}">
+            <input type="text" class="form-control" id="username" placeholder="Username" th:field="*{username}">
             <label for="username">Username</label>
             <div style="color:red" th:if="${#fields.hasErrors('username')}" th:errors="*{username}">Username error</div>
         </div>

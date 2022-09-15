@@ -8,19 +8,20 @@
     <meta name="generator" content="Hugo 0.101.0">
     <title>Authorization</title>
 
-    <breadCrumb rel="canonical" href="https://getbootstrap.com/docs/5.2/examples/sign-in/">
-    <breadCrumb th:href="@{resources/css/bootstrap.min.css}" rel="stylesheet"/>
-    <breadCrumb th:href="@{resources/css/signin.css}" rel="stylesheet"/>
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.2/examples/sign-in/">
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet"/>
+    <link th:href="@{/css/signin.css}" rel="stylesheet"/>
 </head>
 <body class="text-center">
 <main class="form-signin w-100 m-auto">
     <form name="f" method="POST" action="/process_login">
+        <img class="mb-4" th:src="@{/img/cloud.png}" alt="">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
         <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
         <div class="form-floating">
-            <input type="text" class="form-control" id="username" placeholder="Login" name = "username">
-            <label for="username">Login</label>
+            <input type="text" class="form-control" id="username" placeholder="Username" name = "username">
+            <label for="username">Username</label>
         </div>
         <div class="form-floating">
             <input type="password" class="form-control" id="password" placeholder="Password" name = "password">
@@ -28,10 +29,11 @@
         </div>
 
         <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
+
+        <a th:href="@{/auth/registration}">or create account</a>
         <div th:if="${param.error}" style="color: red">
-            Неправильные имя или пароль
+            Wrong username or password
         </div>
-        <p class="mt-5 mb-3 text-muted">&copy; My way to Java Developer 2022</p>
     </form>
 </main>
 </body>
