@@ -1,4 +1,4 @@
-package ru.immagixe.CloudFileStorage.minioS3.dto;
+package ru.immagixe.CloudFileStorage.storage.dto;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -9,8 +9,6 @@ import java.util.List;
 @Setter
 @Getter
 public class DirectoryDTO {
-
     private List<MultipartFile> files;
-
     private String path;
 }

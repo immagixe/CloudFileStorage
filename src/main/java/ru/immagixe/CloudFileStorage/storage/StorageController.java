@@ -1,4 +1,4 @@
-package ru.immagixe.CloudFileStorage.minioS3;
+package ru.immagixe.CloudFileStorage.storage;
 
 import io.minio.errors.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,9 +7,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import ru.immagixe.CloudFileStorage.minioS3.dto.DirectoryDTO;
-import ru.immagixe.CloudFileStorage.minioS3.dto.FileDTO;
-import ru.immagixe.CloudFileStorage.minioS3.models.File;
+import ru.immagixe.CloudFileStorage.storage.dto.DirectoryDTO;
+import ru.immagixe.CloudFileStorage.storage.dto.FileDTO;
+import ru.immagixe.CloudFileStorage.storage.models.File;
 import ru.immagixe.CloudFileStorage.security.securityDetails.PersonDetails;
 
 import java.io.IOException;
@@ -21,6 +21,7 @@ public class StorageController {
 
     private final StorageService storageService;
 
+
     @Autowired
     public StorageController(StorageService storageService) {
         this.storageService = storageService;
@@ -28,7 +29,7 @@ public class StorageController {
 
     @GetMapping("/")
     public String listFiles(@RequestParam(value = "path", required = false, defaultValue = "")
-                                String pathToSubdirectory, Model model,
+                            String pathToSubdirectory, Model model,
                             @ModelAttribute FileDTO fileDTO,
                             @ModelAttribute DirectoryDTO directoryDTO)
 
@@ -46,24 +47,11 @@ public class StorageController {
 
         model.addAttribute("pathToCurrentDirectory", mainDirectoryName + pathToSubdirectory);
         model.addAttribute("breadCrumbs", storageService.getBreadCrumbs(pathToSubdirectory));
-        model.addAttribute("listFiles", storageService.getListOfFilesAndDirectories(
+        model.addAttribute("listFiles", storageService.getListObjects(
                 mainDirectoryName + pathToSubdirectory));
 
         return "main";
     }
-
-//    @PostMapping("/create-directory")
-//    public String createDirectory(@RequestHeader(value = "referer", required = false) final String referer,
-//                                  @RequestParam(required = false) String pathToCurrentDirectory,
-//                                  @RequestParam(required = false) String directoryName)
-//            throws ServerException, InsufficientDataException, ErrorResponseException, IOException,
-//            NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException,
-//            InternalException {
-//
-//        storageService.createDirectory(pathToCurrentDirectory, directoryName);
-//        return "redirect:" + referer;
-//    }
-
 
     @PostMapping(value = "/upload-file")
     public String uploadFile(@RequestHeader(value = "referer", required = false) final String referer,
@@ -71,6 +59,7 @@ public class StorageController {
             throws ServerException, InsufficientDataException, ErrorResponseException,
             NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException,
             InternalException {
+
 
         storageService.uploadFile(fileDTO.getFile(), fileDTO.getPath());
         return "redirect:" + referer;
@@ -110,7 +99,17 @@ public class StorageController {
     }
 
     @GetMapping(value = "/search")
-    public String foundFiles(@RequestParam ("query") String query) {
+    public String foundFiles(@RequestParam(value = "query", required = false) String query, Model model)
+            throws ServerException, InsufficientDataException, ErrorResponseException, IOException,
+            NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException,
+            InternalException {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        PersonDetails personDetails = (PersonDetails) authentication.getPrincipal();
+
+        String mainDirectoryName = storageService.getNameOfUserDirectory(personDetails.getPerson().getId());
+        model.addAttribute("foundFiles", storageService.findObjectsByName(mainDirectoryName, query));
+
         return "search";
     }
 }

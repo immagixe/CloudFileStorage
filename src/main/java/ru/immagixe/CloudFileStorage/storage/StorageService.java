@@ -1,4 +1,4 @@
-package ru.immagixe.CloudFileStorage.minioS3;
+package ru.immagixe.CloudFileStorage.storage;
 
 import java.io.*;
 import java.net.URLEncoder;
@@ -21,9 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
-import ru.immagixe.CloudFileStorage.minioS3.models.BreadCrumb;
-import ru.immagixe.CloudFileStorage.minioS3.models.File;
-import ru.immagixe.CloudFileStorage.minioS3.models.ObjectType;
+import ru.immagixe.CloudFileStorage.storage.models.BreadCrumb;
+import ru.immagixe.CloudFileStorage.storage.models.File;
 
 import javax.validation.constraints.NotNull;
 
@@ -94,7 +93,7 @@ public class StorageService {
             objectsToDelete.add(new DeleteObject(objectNameToDelete));
 
             // If object is directory -> recursive function
-            if (objectNameToDelete.endsWith("/")) {
+            if (isDirectory(objectNameToDelete)) {
                 removeObjects(objectNameToDelete);
             }
         }
@@ -111,102 +110,136 @@ public class StorageService {
             ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException,
             InvalidResponseException, XmlParserException, InternalException {
 
-        String newPath = getPathOfCurrentDirectory(objectName) + displayName + "/";
+        String newPath = (isDirectory(objectName) ?
+                getPathOfCurrentDirectory(objectName) + displayName + "/" :
+                getPathOfCurrentDirectory(objectName) + displayName);
+
         int countOfSeparator = StringUtils.countOccurrencesOf(newPath, "/");
 
-        copyDirectory(objectName, newPath, countOfSeparator);
+        copyObjects(objectName, newPath, countOfSeparator);
         removeObjects(objectName);
     }
 
-    public void copyDirectory(String objectName, String newPath, int countOfSeparator) throws ServerException,
+    public void copyObjects(String objectName, String newPath, int countOfSeparator) throws ServerException,
             InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException,
             InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
 
         Iterable<Result<Item>> listObjects = storageDAO.getListObjects(bucketName, objectName);
 
         for (Result<Item> object : listObjects) {
-
             String oldPath = object.get().objectName();
-            String suffixOfNewPath = oldPath;
 
-            // If object is directory -> recursive function
-            if (oldPath.endsWith("/")) {
-                copyDirectory(oldPath, newPath, countOfSeparator);
-            } else {
+            if (isDirectory(newPath)) {
+                String newFileName = oldPath;
 
-                for (int i = 0; i < countOfSeparator; i++) {
-                    suffixOfNewPath = truncateFirstDirectoryName(suffixOfNewPath);
+                if (isDirectory(oldPath)) {
+                    copyObjects(oldPath, newPath, countOfSeparator);
+                } else {
+                    for (int i = 0; i < countOfSeparator; i++) {
+                        newFileName = truncateFirstPart(newFileName);
+                    }
+                    String newPathToFile = newPath + newFileName;
+                    storageDAO.copyObject(bucketName, newPathToFile, oldPath);
                 }
-
-                String newObjectName = newPath + suffixOfNewPath;
-                storageDAO.copyObject(bucketName, newObjectName, oldPath);
+            } else {
+                storageDAO.copyObject(bucketName, newPath, oldPath);
             }
         }
     }
 
-    public List<File> getListOfFilesAndDirectories(String objectName) throws ServerException,
+    public List<File> getListObjects(String objectName) throws ServerException,
             InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException,
             InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
 
         List<File> listFiles = new ArrayList<>();
+        int idOnPage = 0;
 
-        Map<String, String> reqParams = new HashMap<>();
-        reqParams.put("response-content-type", "application/octet-stream");
-
-        int idCount = 0;
-
-        // List all objects
         Iterable<Result<Item>> minioObjects = storageDAO.getListObjects(bucketName, objectName);
 
-        // Iterate over each element and set file url
         for (Result<Item> minioObj : minioObjects) {
-
             Item item = minioObj.get();
 
-            // Create a new File Object
-            File file = new File();
+            String innerDirectoryPath = truncateFirstPart(item.objectName());
+            String displayName = Paths.get(innerDirectoryPath).getFileName().toString();
 
-            file.setIdOnPage(++idCount);
-            file.setObjectName(item.objectName());
+            if (displayName.length() > 0) {
 
-            // Set display names of files and directories
-            String pathWithoutMainDirectory = truncateFirstDirectoryName(item.objectName());
-            String displayFileOrDirectoryName = Paths.get(pathWithoutMainDirectory).getFileName().toString();
-            file.setDisplayName(displayFileOrDirectoryName);
+                // Get URL of current directory
+                String fullPath = item.objectName();
+                String path = truncateFirstPart(fullPath);
+                String currentDirectoryPath = getPathOfCurrentDirectory(path);
+                String encodedCurrentDirectoryPath = URLEncoder.encode(currentDirectoryPath, StandardCharsets.UTF_8.toString());
+                String urlCurEncoded = getUrlForDirectory(encodedCurrentDirectoryPath);
 
-            // Set the URL in the directory and in the file
-            // If object is directory
-            if (item.objectName().endsWith("/")) {
+                // Get URL of file or subdirectory
+                String urlSubEncoded;
 
-                file.setType(ObjectType.DIRECTORY);
+                if (isDirectory(fullPath)) {
+                    String encodedSubDirectoryPath = URLEncoder.encode(path, StandardCharsets.UTF_8.toString());
+                    urlSubEncoded = getUrlForDirectory(encodedSubDirectoryPath);
+                } else {
+                    urlSubEncoded = storageDAO.getPresignedObjectUrl(bucketName, fullPath);
+                }
 
-                String subDirectoryName = item.objectName();
-
-                String subDirectoryPath = truncateFirstDirectoryName(subDirectoryName);
-                String encodedSubDirectoryPath = URLEncoder.encode(subDirectoryPath, StandardCharsets.UTF_8.toString());
-
-                // Set the URL in the directory
-                String urlencoded = getUrlForDirectory(encodedSubDirectoryPath);
-                file.setUrl(urlencoded);
-
-                // If object is file
-            } else {
-                file.setType(ObjectType.FILE);
-                // Set the presigned URL in the file
-                file.setUrl(storageDAO.getPresignedObjectUrl(bucketName, item.objectName(), reqParams));
-            }
-            // Add the File object to the list holding File objects
-            if (file.getDisplayName().length() > 0) {
-                listFiles.add(file);
+                // Create file-info with params. idOnPage needs for correct Thymeleaf foreach loop in modal form
+                listFiles.add(new File(++idOnPage, displayName, fullPath, urlSubEncoded, urlCurEncoded));
             }
         }
-
-        // Return list of directories and files
         return listFiles;
     }
 
-    private String truncateFirstDirectoryName(String path) {
-        return path.substring(path.indexOf("/") + 1);
+    public List<File> findObjectsByName(String objectName, String searchName) throws ServerException,
+            InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException,
+            InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
+
+        List<File> listFiles = new ArrayList<>();
+        int idOnPage = 0;
+
+        recursiveSearching(objectName, searchName, listFiles, idOnPage);
+        return listFiles;
+    }
+
+    private void recursiveSearching(String objectName, String searchName, List<File> listFiles, int idOnPage)
+            throws ErrorResponseException, InsufficientDataException, InternalException, InvalidKeyException,
+            InvalidResponseException, IOException, NoSuchAlgorithmException, ServerException, XmlParserException {
+
+        Iterable<Result<Item>> minioObjects = storageDAO.getListObjects(bucketName, objectName);
+
+        // Iterate over each element and set parameters
+        for (Result<Item> minioObj : minioObjects) {
+            Item item = minioObj.get();
+
+            String innerDirectoryPath = truncateFirstPart(item.objectName());
+            String displayName = Paths.get(innerDirectoryPath).getFileName().toString();
+
+            if (displayName.length() > 0) {
+
+                // Get URL of current directory
+
+                String fullPath = item.objectName();
+                String path = truncateFirstPart(fullPath);
+                String currentDirectoryPath = getPathOfCurrentDirectory(path);
+                String encodedCurrentDirectoryPath = URLEncoder.encode(currentDirectoryPath, StandardCharsets.UTF_8.toString());
+                String urlCurEncoded = getUrlForDirectory(encodedCurrentDirectoryPath);
+
+                // Get URL of file or subdirectory
+                String urlSubEncoded;
+
+                if (isDirectory(fullPath)) {
+                    String encodedSubDirectoryPath = URLEncoder.encode(path, StandardCharsets.UTF_8.toString());
+                    urlSubEncoded = getUrlForDirectory(encodedSubDirectoryPath);
+
+                    // When object is directory -> recursive function
+                    recursiveSearching(fullPath, searchName, listFiles, idOnPage);
+                } else {
+                    urlSubEncoded = storageDAO.getPresignedObjectUrl(bucketName, fullPath);
+                }
+
+                if (displayName.toUpperCase().contains(searchName.toUpperCase())) {
+                    listFiles.add(new File(++idOnPage, displayName, fullPath, urlSubEncoded, urlCurEncoded));
+                }
+            }
+        }
     }
 
     public Deque<BreadCrumb> getBreadCrumbs(String pathToSubdirectory) throws UnsupportedEncodingException {
@@ -259,16 +292,27 @@ public class StorageService {
         return breadCrumbs;
     }
 
+    private String truncateFirstPart(String path) {
+        return path.substring(path.indexOf("/") + 1);
+    }
+
+    private boolean isDirectory(String item) {
+        return item.endsWith("/");
+    }
+
     private String getPathOfCurrentDirectory(String objectName) {
 
-        String withoutLastSeparator = objectName.substring(0, objectName.lastIndexOf("/"));
-        String withoutPenultimateSeparator = withoutLastSeparator.substring(0, withoutLastSeparator.lastIndexOf("/") + 1);
+        if (objectName.contains("/")) {
+            String withoutLastSeparator = objectName.substring(0, objectName.lastIndexOf("/"));
+            String withoutPenultimateSeparator = withoutLastSeparator.substring(0, withoutLastSeparator.lastIndexOf("/") + 1);
 
-        if (objectName.endsWith("/")) {
-            return withoutPenultimateSeparator;
-        } else {
-            return objectName.substring(0, objectName.lastIndexOf("/") + 1);
+            if (isDirectory(objectName)) {
+                return withoutPenultimateSeparator;
+            } else {
+                return (objectName.substring(0, objectName.lastIndexOf("/") + 1));
+            }
         }
+        return "";
     }
 
     @NotNull
@@ -298,12 +342,3 @@ public class StorageService {
                 .toUriString();
     }
 }
-
-//    public void createDirectory(String pathToCurrentDirectory, String directoryName) throws ServerException, InsufficientDataException,
-//            ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException,
-//            InvalidResponseException, XmlParserException, InternalException {
-//
-//        String objectName = pathToCurrentDirectory + directoryName + "/";
-//        storageDAO.createDirectory(bucketName, objectName);
-//    }
-//}

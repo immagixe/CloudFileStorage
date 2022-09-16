@@ -1,10 +1,75 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Search results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+    <link th:href="@{/css/list-groups.css}" rel="stylesheet">
 </head>
-<body>
 
+<body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-u1OknCvxWvY5kfmNBILK2hRnQC3Pr17a+RTT6rIHI7NnikvbZlHgTPOOmMi466C8"
+        crossorigin="anonymous"></script>
+<div th:insert="auth/header :: authorization_bar"></div>
+<div class="container-md">
+
+    <!-- Searching img -->
+    <div class="row justify-content-center">
+        <div class="col-auto mt-2">
+            <img class="mb-2" th:src="@{/img/searching.png}" alt="search">
+        </div>
+    </div>
+
+    <!-- Search file or directory -->
+    <div class="row justify-content-md-center mt-4">
+        <div class="col-6 text-center">
+            <form class="input-group mb-3" th:action="@{/search}" method="GET">
+                <input type="text" class="form-control" placeholder="Enter file or directory name"
+                       aria-describedby="button-addon2" th:value="${query}" name="query">
+                <button class="btn btn-warning btn-lg" type="submit" id="button-addon2">Search</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- List of files and directories -->
+    <div class="row justify-content-center">
+        <div class="col-auto mt-5">
+            <h3>Found files and directories</h3>
+        </div>
+    </div>
+
+    <ul class="list-group">
+        <li th:each="file : ${foundFiles}" th:object="${file}"
+            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+            <a style="text-decoration: none" th:href="*{url}" th:text="*{displayName}">Name</a>
+
+            <div class="btn-group">
+                <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                    . . .
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" th:href="${file.urlCurrentDirectory}">Open location</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <form th:action="@{/remove}" th:method="DELETE">
+                        <li>
+                            <input type="hidden" th:value="*{objectName}" name="objectName"/>
+                            <button type="submit" class="dropdown-item">Delete</button>
+                        </li>
+                    </form>
+                </ul>
+            </div>
+        </li>
+    </ul>
+
+</div>
 </body>
 </html>
+
+
+

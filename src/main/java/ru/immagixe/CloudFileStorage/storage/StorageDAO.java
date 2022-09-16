@@ -1,4 +1,4 @@
-package ru.immagixe.CloudFileStorage.minioS3;
+package ru.immagixe.CloudFileStorage.storage;
 
 import io.minio.*;
 import io.minio.errors.*;
@@ -24,6 +24,15 @@ public class StorageDAO {
     @Autowired
     public StorageDAO(MinioClient minioClient) {
         this.minioClient = minioClient;
+    }
+
+    public Iterable<Result<Item>> getListObjects(String bucketName, String objectName) {
+
+        return minioClient.listObjects(
+                ListObjectsArgs.builder()
+                        .bucket(bucketName)
+                        .prefix(objectName)
+                        .build());
     }
 
     public void putObject(String bucketName, String fileName, String filePath, InputStream inputStream)
@@ -63,25 +72,7 @@ public class StorageDAO {
                         .build());
     }
 
-    public Iterable<Result<Item>> getListObjects(String bucketName, String objectName) {
-
-        return minioClient.listObjects(
-                ListObjectsArgs.builder()
-                        .bucket(bucketName)
-                        .prefix(objectName)
-                        .build());
-    }
-
-//    public Iterable<Result<Item>> getListObjectsRecursive(String bucketName, String objectName) {
-//        // Lists objects information recursively.
-//        return minioClient.listObjects(
-//                ListObjectsArgs.builder()
-//                        .bucket(bucketName)
-//                        .recursive(true)
-//                        .build());
-//    }
-
-    public String getPresignedObjectUrl(String bucketName, String objectName, Map<String, String> reqParams)
+    public String getPresignedObjectUrl(String bucketName, String objectName)
             throws ServerException, InsufficientDataException, ErrorResponseException, IOException,
             NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException,
             InternalException {
@@ -92,20 +83,8 @@ public class StorageDAO {
                         .bucket(bucketName)
                         .object(objectName)
                         .expiry(2, TimeUnit.HOURS)
-                        .extraQueryParams(reqParams)
+                        .extraQueryParams(new HashMap<>(
+                                Map.of("response-content-type", "application/octet-stream")))
                         .build());
     }
 }
-
-//       public void createDirectory(String bucketName, String objectName) throws ServerException, InsufficientDataException,
-//            ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException,
-//            InvalidResponseException, XmlParserException, InternalException {
-//
-//        minioClient.putObject(
-//                PutObjectArgs.builder()
-//                        .bucket(bucketName)
-//                        .object(objectName)
-//                        .stream(new ByteArrayInputStream(new byte[]{}), 0, -1)
-//                        .build());
-//    }
-//}
