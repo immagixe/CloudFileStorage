@@ -3,10 +3,11 @@ package ru.immagixe.CloudFileStorage.security.models;
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "users")
-public class Person {
+public class Person implements Serializable {
 
     @Id
     @Column(name = "id")
