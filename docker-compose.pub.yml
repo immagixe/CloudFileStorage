@@ -2,7 +2,7 @@ version: '3'
 
 services:
   springboot:
-    build: ./
+    image: immagixe/cloud-file-storage
     restart: always
     depends_on:
       - mysql

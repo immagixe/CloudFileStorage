@@ -4,17 +4,18 @@ import io.minio.MinioClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.session.data.redis.config.ConfigureRedisAction;
 
 @Configuration
 public class MinioConfig {
 
-    @Value("${s3.endPoint}")
+    @Value("${minio.url}")
     private String endPoint;
 
-    @Value("${s3.accessKey}")
+    @Value("${minio.accessKey}")
     private String accessKey;
 
-    @Value("${s3.secretKey}")
+    @Value("${minio.secretKey}")
     private String secretKey;
 
     @Bean
@@ -23,5 +24,10 @@ public class MinioConfig {
                 .endpoint(endPoint)
                 .credentials(accessKey, secretKey)
                 .build();
+    }
+
+    @Bean
+    public static ConfigureRedisAction configureRedisAction() {
+        return ConfigureRedisAction.NO_OP;
     }
 }

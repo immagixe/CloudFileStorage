@@ -40,7 +40,7 @@ public class StorageService {
     @Value("${url.port}")
     private String port;
 
-    @Value("${s3.bucketName}")
+    @Value("${minio.bucketName}")
     private String bucketName;
 
     private final StorageDAO storageDAO;
