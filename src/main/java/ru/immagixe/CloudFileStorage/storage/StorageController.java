@@ -3,6 +3,7 @@ package ru.immagixe.CloudFileStorage.storage;
 import io.minio.errors.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,6 +16,7 @@ import ru.immagixe.CloudFileStorage.security.securityDetails.PersonDetails;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
 
 @Controller
 public class StorageController {
@@ -31,21 +33,25 @@ public class StorageController {
     public String listFiles(@RequestParam(value = "path", required = false, defaultValue = "")
                             String pathToSubdirectory, Model model,
                             @ModelAttribute FileDTO fileDTO,
-                            @ModelAttribute DirectoryDTO directoryDTO)
+                            @ModelAttribute DirectoryDTO directoryDTO,
+                            @AuthenticationPrincipal PersonDetails personDetails)
 
             throws ServerException, InsufficientDataException, ErrorResponseException, IOException,
             NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException,
             InternalException {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        PersonDetails personDetails = (PersonDetails) authentication.getPrincipal();
+
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        PersonDetails personDetails = (PersonDetails) authentication.getPrincipal();
 
         String mainDirectoryName = storageService.getNameOfUserDirectory(personDetails.getPerson().getId());
 
-        fileDTO.setPath(mainDirectoryName + pathToSubdirectory);
-        directoryDTO.setPath(mainDirectoryName + pathToSubdirectory);
+        String currentDirectoryPath = mainDirectoryName + pathToSubdirectory;
 
-        model.addAttribute("pathToCurrentDirectory", mainDirectoryName + pathToSubdirectory);
+        fileDTO.setPath(currentDirectoryPath);
+        directoryDTO.setPath(currentDirectoryPath);
+
+        model.addAttribute("pathToCurrentDirectory", currentDirectoryPath);
         model.addAttribute("breadCrumbs", storageService.getBreadCrumbs(pathToSubdirectory));
         model.addAttribute("listFiles", storageService.getListObjects(
                 mainDirectoryName + pathToSubdirectory));
